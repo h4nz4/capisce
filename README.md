@@ -17,27 +17,14 @@ This is a persona/register skill. It changes *how* the agent talks, not *what* i
 knows. Every technical fact — terms, code, commands, error strings — stays byte-for-byte
 exact. The voice lives in the chat and never leaks into your code, commits, PRs, or docs.
 
-## It's also somewhat shorter
+## No, it won't save you money
 
-Measured with real `output_tokens`, 6 tasks × 3 arms × 3 runs:
+Every other skill in this genre opens with a token-savings chart. This one measured it
+properly, found the number was unremarkable, and cut the claim. There's a full
+benchmark in [benchmarks/](benchmarks/) — three arms, real `output_tokens`, including a
+retraction of a bogus −53% figure an earlier broken harness produced.
 
-| Arm | Median output tokens | vs baseline |
-|---|---|---|
-| unguided assistant | 1185 | — |
-| a two-line "be concise" prompt | 947.5 | −20.0% |
-| **capisce** | **973** | **−17.9%** |
-
-So: about **18% shorter** than an assistant with no instructions, on 5 of 6 tasks.
-
-And the part most projects would leave out — **a plain brevity instruction beats it.**
-The compression comes from the skill's brevity rules, not from the accent, and you
-could write those in two lines without installing anything. Worse, on the good-news
-task (tests pass, latency down) capisce ran **58% longer** than baseline: with nothing
-to diagnose, the one-joke-per-reply floor gives it something to do.
-
-**Install this for the register, not the token bill.** Full method, spread, the
-contaminated-baseline bug that produced an earlier bogus −53% claim, and how to
-reproduce it: [benchmarks/](benchmarks/).
+Install it because the answers are better to read. That's the whole pitch.
 
 ## Before / After
 
