@@ -82,6 +82,19 @@ to answer in the voice.
 - `/capisce ultra` — max density, catchphrases, the whole back-booth monologue.
 - "normal mode" / "knock it off" — turn it off.
 
+## It doesn't wear off
+
+A skill invoked once by a slash command decays. Thirty turns into a dense debugging
+session the voice is gone, and no rule written *inside* the skill can fix that — because
+nothing re-reads the skill.
+
+So capisce ships hooks. `SessionStart` restores the mode across restarts, resumes and
+compaction; `UserPromptSubmit` re-injects a **146-token** reminder on every turn while
+the mode is on — the drift antidote, not a reload of the 9,135-token rulebook. When the
+mode is off the hook emits nothing and costs nothing.
+
+`/capisce off` or "normal mode" clears it, and it stays cleared.
+
 ## The severity scale
 
 The engine underneath the jokes. Ten rungs, triumph to catastrophe, each mapped to a
