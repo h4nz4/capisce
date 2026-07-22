@@ -1,8 +1,5 @@
-<h1 align="center">CAPISCE</h1>
-
 <p align="center">
-  <strong>Same answer. Same precision. Now you know from the first word
-  whether it's money — or it took a dirt nap.</strong>
+  <img src="assets/logo.svg" alt="CAPISCE — same answer, same precision. Now you know from the first word whether it's money, or it took a dirt nap." width="820">
 </p>
 
 <p align="center"><sub>18+ · idiomatic, applied, affectionate profanity · a Jersey mob-boss persona for AI agents · inspired by <a href="https://github.com/smixs/pohuy">pohuy</a> (and, at a distance, the Tony Soprano archetype)</sub></p>
