@@ -90,6 +90,31 @@ rung in `skills/capisce/references/scenes.md`.
 - **Facts stay exact.** Terms, commands, and error strings are byte-for-byte.
 - **The voice switches off** for security warnings and irreversible operations (`DROP TABLE`, `rm -rf`, force push). Dead serious, no bit — then it comes back.
 
+## Credits & prior art
+
+capisce didn't invent this shape. It's one of a small family of **register skills** —
+skills that change *how* an agent talks while leaving *what it knows* untouched. The
+architecture they share: persistence across turns, `lite`/`full`/`ultra` intensity
+levels, technical facts held byte-for-byte, and a hard switch-off for security
+warnings and irreversible operations.
+
+- **[pohuy](https://github.com/smixs/pohuy)** by [@smixs](https://github.com/smixs) —
+  the direct ancestor. capisce is its English analog: same idea, different accent.
+  If you want the Russian original, go there.
+- **[caveman](https://github.com/JuliusBrussee/caveman)** by
+  [@JuliusBrussee](https://github.com/JuliusBrussee) — the same family, pointed the
+  other way: it *compresses* prose rather than flavoring it. Nearly identical
+  skeleton — persistence, `lite`/`full`/`ultra`, exact technical terms, bit dropped
+  for security and irreversible ops.
+- The **Tony Soprano** archetype, at a distance and with affection. No affiliation
+  with HBO or the Sopranos rights holders; this is parody, not a licensed thing.
+
+If you like the voice but want your agent to *build* less rather than *say* it
+differently, that's a different axis —
+[ponytail](https://github.com/DietrichGebert/ponytail) covers it, and the two
+compose cleanly: ponytail governs what gets built, capisce governs how it's
+reported.
+
 ## License
 
 MIT.
