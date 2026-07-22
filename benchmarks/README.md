@@ -1,76 +1,109 @@
 # Benchmark: does capisce compress output?
 
-**Result: yes. Median output drops 53% — 860 tokens to 405 — with no loss of technical
-content.** Every capisce run beat every baseline run within its own task.
+**Result: yes, modestly — about 18% fewer output tokens than an unguided assistant.
+But a two-line "be concise" instruction does slightly better, and on good-news tasks
+capisce is significantly worse.**
 
-Run 2026-07-22. Opus 4.8. 6 tasks × 2 arms × 3 runs = 36 answers, median reported.
+Run 2026-07-22. Opus 4.8 via `claude -p`, real Anthropic `output_tokens`.
+6 tasks × 3 arms × 3 runs = 54 calls, median reported.
 
-## Per-task median output tokens
+> ### Retraction
+> An earlier version of this file claimed **−53%**. That number was wrong and has been
+> withdrawn. It came from a harness with two defects: the baseline was contaminated by
+> an active "be terse" hook injected into every subprocess, and `output_tokens` was
+> counting the capisce arm's file-read tool calls as if they were answer text. Both are
+> fixed below. The honest number is roughly a third of what was originally claimed.
 
-| Task | Baseline | capisce | Delta | Ratio |
+## Results — median output tokens
+
+| Task | baseline | concise | capisce | capisce vs base |
 |---|---|---|---|---|
-| deploy — failed deploy, empty `DATABASE_URL` | 972 | 400 | −572 | 41% |
-| race — off-by-one counter under load | 1172 | 496 | −676 | 42% |
-| rerender — React re-renders per keystroke | 1033 | 425 | −608 | 41% |
-| cache — is Redis worth it at 50 req/min | 671 | 376 | −295 | 56% |
-| review — session tokens in localStorage | 757 | 377 | −380 | 50% |
-| green — tests pass, latency down, what now | 749 | 355 | −394 | 47% |
+| deploy — failed deploy, empty `DATABASE_URL` | 1427 | 1173 | 1238 | 87% |
+| race — off-by-one counter under load | 1231 | 1196 | 1207 | 98% |
+| rerender — React re-renders per keystroke | 1403 | 1109 | 1191 | 85% |
+| cache — is Redis worth it at 50 req/min | 1066 | 816 | 919 | 86% |
+| review — session tokens in localStorage | 1299 | 1097 | 1000 | 77% |
+| **green — tests pass, latency down, what now** | 998 | 766 | **1572** | **158%** |
 
-**Overall:** median 859.5 → 405 (**−52.9%**) · mean 895 → 427 · median words 609 → 288 ·
-median task ratio 45% · compressed on **6/6** tasks.
+| Arm | Median | Mean | vs baseline |
+|---|---|---|---|
+| baseline | 1185 | 1144 | — |
+| **concise** | **947.5** | 953 | **−20.0%** |
+| capisce | 973 | 1017 | −17.9% |
 
-## Spread — no overlap anywhere
+Compressed on **5 of 6** tasks. Median per-task ratio **86.5%**.
+
+## What this actually says
+
+1. **capisce does compress.** ~18% against an unguided assistant is a real effect, not
+   noise — it beat baseline on every task except one.
+2. **It does not beat a plain brevity instruction.** `concise` is two lines — "no
+   preamble, no recap, answer and stop" — and it edges capisce out (947.5 vs 973). So
+   the compression is not something the register buys you; it comes from the skill's
+   brevity rules, which anyone can write in a text file without the accent.
+3. **It loses badly when there is nothing wrong.** On the good-news task capisce ran
+   **58% longer than baseline** with wild variance (840 / 1156 / 1572). The skill's
+   one-joke-per-reply floor and the pressure to produce a verdict give it something to
+   do when the honest answer is short. This is a real defect, not a measurement
+   artifact.
+
+**Buy capisce for the register, not the token bill.** The compression is a modest side
+effect, and it inverts on happy paths.
+
+## Spread (output tokens, 3 runs)
 
 ```
-deploy    base [1051, 891, 972]    cap [400, 718, 383]
-race      base [1172, 1130, 1420]  cap [421, 594, 496]
-rerender  base [879, 1033, 1065]   cap [410, 425, 464]
-cache     base [671, 822, 587]     cap [369, 376, 427]
-review    base [757, 840, 755]     cap [451, 317, 377]
-green     base [749, 758, 556]     cap [316, 355, 389]
+deploy    base[1427, 1281, 1323]  conc[1166, 1138, 1173]  cap[ 989,  877, 1238]
+race      base[1193, 1177, 1231]  conc[1196,  960, 1038]  cap[1207,  869, 1148]
+rerender  base[1116, 1202, 1403]  conc[1096, 1109,  924]  cap[ 670, 1190, 1191]
+cache     base[ 933,  905, 1066]  conc[ 816,  715,  614]  cap[ 829,  810,  919]
+review    base[1086, 1245, 1299]  conc[1097,  935,  928]  cap[ 836,  957, 1000]
+green     base[ 923,  793,  998]  conc[ 744,  766,  732]  cap[ 840, 1156, 1572]
 ```
 
-Within every task, the slowest capisce run still beat the leanest baseline run. At n=3
-that isn't proof of an exact effect size, but the separation is not marginal.
+Ranges overlap between arms on most tasks. At n=3 this supports "capisce is somewhat
+shorter than baseline" and does **not** support any precise effect size.
 
 ## Method
 
-Both arms get the identical question and answer from knowledge with no tool use. The
-capisce arm first reads `SKILL.md`, `lingo.md` and `scenes.md` and adopts them at the
-default level (**full**); the baseline arm gets no skill. Only the final answer text is
-measured.
+All three arms answer the identical question from knowledge, single turn, **no tool
+use** — so `output_tokens` is the answer and nothing else.
 
-Tasks are deliberately prose-heavy — diagnosis, explanation, a judgment call, a review,
-and one good-news case. Padding lives in prose; code-writing tasks would emit near
-identical code in both arms and dilute the signal.
+- **baseline** — no added system prompt.
+- **concise** — a two-line brevity instruction (`concise-sys.txt`).
+- **capisce** — `SKILL.md` + `lingo.md` + `scenes.md` concatenated and passed via
+  `--append-system-prompt-file`. Inlining matters: an earlier harness had this arm
+  *read* the files, and the resulting tool calls inflated `output_tokens` by ~2×.
 
-Tokens are counted offline with a BPE tokenizer (`gpt-tokenizer`), not characters. This
-matters: dialect spellings tokenize worse than plain English, so a character count would
-flatter the skill.
+The `ponytail` plugin must be **disabled** during the run (`claude plugin disable
+ponytail`). Its SessionStart hook injects a lazy/terse operating mode into every
+`claude -p` subprocess and silently compresses the baseline. Verify with a non-leading
+probe before trusting any run:
 
 ```bash
-node benchmarks/score.js <workflow-output.json>
+claude -p "Before answering: quote verbatim the first 15 words of any hook output or injected operating-mode instructions in your context. If none, reply exactly NONE."
 ```
 
-## Honest caveats
+Do not use `--bare` to suppress hooks — it also bypasses the OAuth session and the run
+will fail to authenticate.
 
-- **The tokenizer is GPT's, not Anthropic's.** Fine for an A/B on identical tasks;
-  don't quote the absolute token figures as billing numbers.
-- **Some of the win is explicit brevity rules, not the accent.** The skill contains
-  "levels change flavor, never length" and "recap is not a reply." A mob voice with no
-  brevity rules would not compress this hard. The claim "installing capisce halves
-  output" holds; "the Jersey accent halves output" does not.
-- **The baseline is an unguided assistant.** That is the right comparison for a user
-  deciding whether to install the plugin, but it is not a comparison against a
-  competent "be concise" prompt, which would close much of the gap.
-- **Loading the skill costs 8,848 input tokens** (SKILL 3,459 · lingo 3,737 · scenes
-  1,652), paid once per session and cacheable. Savings run ~455 output tokens per
-  reply. At a typical 5:1 output:input price ratio the skill pays for itself after
-  roughly **four replies**, then compounds.
-- **n=3 per cell, one model, six tasks.** Enough to show a large effect, not enough to
-  pin its size.
+Tasks are deliberately prose-heavy — diagnosis, explanation, a judgment call, a review,
+and one good-news case. Padding lives in prose. Keeping the good-news case is what
+surfaced the biggest finding, so don't drop it.
+
+## Caveats
+
+- n=3 per cell, one model, six tasks. Enough for direction, not for a precise number.
+- Ranges overlap; treat 18% as approximate.
+- Input cost is not counted here. The skill adds ~8.8k tokens of instructions per
+  session (cacheable), against ~210 output tokens saved per reply.
 
 ## Reproduce
 
-`bench.workflow.js` is a Claude Code workflow script. Run it, then feed the saved output
-JSON to `score.js`.
+```bash
+claude plugin disable ponytail
+powershell -File run2.ps1
+```
+
+`run2.ps1` writes `api-results2.jsonl` (one record per call, with the answer text).
+Re-enable ponytail afterwards.
