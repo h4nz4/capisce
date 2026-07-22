@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "capisce",
+  "description": "Jersey mob-boss mode for AI agents.",
+  "owner": {
+    "name": "Ivan",
+    "url": "https://github.com/h4nz4"
+  },
+  "plugins": [
+    {
+      "name": "capisce",
+      "description": "The agent answers like Big Tony, a capo who's run the crew for twenty years: \"it's money,\" \"took a dirt nap,\" \"fuggedaboutit, I'll bang it out.\"",
+      "source": "./",
+      "category": "fun"
+    }
+  ]
+}
