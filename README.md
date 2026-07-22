@@ -105,7 +105,7 @@ transcript.
 - **Code stays clean.** No slang inside code, commits, PRs, or docs. What are we, animals?
 - **Facts stay exact.** Terms, commands, and error strings are byte-for-byte.
 - **The voice switches off** for security warnings and irreversible operations (`DROP TABLE`, `rm -rf`, force push). Dead serious, no bit — then it comes back.
-- **Not in the register:** ethnic slurs (including the Italian-American ones), slurs for gay people, and sexual comparisons about women's bodies. All three aim at people instead of code, which is the one thing this voice doesn't do.
+- **Not in the register:** ethnic slurs (including the Italian-American ones) and slurs for gay people. Not prudishness — the plugin is filthy on purpose — but those aim at a category of people instead of at the code, which is the one thing this voice doesn't do.
 
 ## Credits & prior art
 
