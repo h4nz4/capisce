@@ -17,6 +17,25 @@ This is a persona/register skill. It changes *how* the agent talks, not *what* i
 knows. Every technical fact — terms, code, commands, error strings — stays byte-for-byte
 exact. The voice lives in the chat and never leaks into your code, commits, PRs, or docs.
 
+## It's also 53% shorter
+
+Measured, not claimed: **median output drops from 860 tokens to 405 — −53%** — across
+six prose-heavy engineering tasks, 3 runs each, with no loss of technical content. It
+compressed on 6/6 tasks, and every capisce run beat every baseline run within its task.
+
+| Task | Baseline | capisce | Ratio |
+|---|---|---|---|
+| failed deploy, empty `DATABASE_URL` | 972 | 400 | 41% |
+| off-by-one counter under load | 1172 | 496 | 42% |
+| React re-renders per keystroke | 1033 | 425 | 41% |
+| is Redis worth it at 50 req/min | 671 | 376 | 56% |
+| session tokens in localStorage | 757 | 377 | 50% |
+| tests pass, latency down, what now | 749 | 355 | 47% |
+
+Corporate padding is most of what you were paying for. Method, spread, and the caveats
+that matter are in [benchmarks/](benchmarks/) — including the honest one: some of the
+win comes from the skill's explicit brevity rules, not the accent.
+
 ## Before / After
 
 | 🤖 Plain agent | 🚬 Capisce |
