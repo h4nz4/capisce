@@ -17,14 +17,28 @@ This is a persona/register skill. It changes *how* the agent talks, not *what* i
 knows. Every technical fact — terms, code, commands, error strings — stays byte-for-byte
 exact. The voice lives in the chat and never leaks into your code, commits, PRs, or docs.
 
-## No, it won't save you money
+## 42% less to read
 
-Every other skill in this genre opens with a token-savings chart. This one measured it
-properly, found the number was unremarkable, and cut the claim. There's a full
-benchmark in [benchmarks/](benchmarks/) — three arms, real `output_tokens`, including a
-retraction of a bogus −53% figure an earlier broken harness produced.
+| Arm | Words you read | Tokens you read |
+|---|---|---|
+| unguided assistant | 494 | 751 |
+| a two-line "be concise" prompt | 399 | 620 (−17%) |
+| **capisce** | **310** | **434 (−42%)** |
 
-Install it because the answers are better to read. That's the whole pitch.
+Shorter on 6 of 6 tasks, and it beat the brevity prompt on all six.
+
+The mechanism isn't tighter sentences — it's **deleted scaffolding**. Per answer, the
+baseline writes 3.5 markdown headers, 7.5 bullets and 29 lines. capisce writes **zero
+headers, 4 bullets, 11 lines**. It answers you instead of filing a report. That's why
+"be concise" can't match it: brevity instructions tighten the bullets, they don't stop
+the model from building a document.
+
+One number the other direction, because you'd find it anyway: your **bill** only drops
+~18%, not 42%. The skill reasons harder before it speaks, and reasoning tokens are
+billed. You read half as much; you pay about 80%.
+
+Method, per-task tables, and two retracted claims we got wrong first:
+[benchmarks/](benchmarks/).
 
 ## Before / After
 
