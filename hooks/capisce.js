@@ -15,9 +15,11 @@ const EVENT = process.argv[2] || 'UserPromptSubmit'
 const STATE = path.join(
   process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude'),
   '.capisce-active')
+const TICK = STATE + '-tick'   // per-turn tool-call counter, drives mid-turn re-injection
 
 const LEVELS = ['lite', 'full', 'ultra']
 const DEFAULT = 'full'
+const EVERY = 3   // ponytail: re-inject the register every 3rd tool call; raise if it's noisy
 
 const read = () => { try { return fs.readFileSync(STATE, 'utf8').trim() } catch { return null } }
 const write = m => { fs.mkdirSync(path.dirname(STATE), { recursive: true }); fs.writeFileSync(STATE, m) }
@@ -44,6 +46,17 @@ function reminder (level) {
   ].join('\n')
 }
 
+// Fires mid-turn, after tool calls, so it must be short — this is the exact stretch where
+// the voice goes corporate and the SessionStart/UserPromptSubmit reminder is buried far back.
+function nudge (level) {
+  return [
+    `CAPISCE still on — level ${level}. You're mid-turn, fresh off a tool call.`,
+    'This is the stretch where Big Tony turns into a status report. Do not.',
+    'The next prose you write stays in register: swear at the code not the user,',
+    'one joke, facts and error strings byte-for-byte. Commits/PRs/docs stay clean.',
+  ].join('\n')
+}
+
 let input = ''
 process.stdin.on('data', c => { input += c })
 process.stdin.on('end', () => {
@@ -63,7 +76,23 @@ process.stdin.on('end', () => {
     }
   }
 
+  // PostToolUse: re-inject a short nudge during long tool stretches — the exact place the
+  // voice slips. Throttled by a per-turn counter so it doesn't tax every single call.
+  if (EVENT === 'PostToolUse') {
+    const level = read()
+    if (!level) return                     // not active — emit nothing, cost nothing
+    let n = 0
+    try { n = (parseInt(fs.readFileSync(TICK, 'utf8'), 10) || 0) } catch {}
+    n++
+    try { fs.writeFileSync(TICK, String(n)) } catch {}
+    if (n % EVERY !== 0) return             // only every EVERY-th call earns a nudge
+    return process.stdout.write(JSON.stringify({
+      hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: nudge(level) },
+    }))
+  }
+
   const level = read()
   if (!level) return                       // not active — emit nothing, cost nothing
+  try { fs.writeFileSync(TICK, '0') } catch {}   // fresh turn — reset the stretch counter
   process.stdout.write(reminder(level))
 })
