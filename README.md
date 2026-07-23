@@ -95,6 +95,49 @@ mode is off the hook emits nothing and costs nothing.
 
 `/capisce off` or "normal mode" clears it, and it stays cleared.
 
+## The status line
+
+Optional, opt-in. capisce can show its current mode in the Claude Code status line —
+`🚬 capisce full` — so you always know the register's on and at what level. Because a
+status line command is deterministic, it stays in character even when a long session
+would otherwise let the voice drift.
+
+Claude Code has exactly one status line slot, and it lives in *your* `settings.json` —
+a plugin can't claim it. So you wire it up yourself, once. Point `statusLine.command` at
+the same script the hooks use:
+
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "node /absolute/path/to/capisce/hooks/capisce.js statusline",
+    "padding": 0
+  }
+}
+```
+
+With no other status line configured, capisce renders a self-contained bar —
+`🚬 capisce full · main · Opus · capisce` (badge · git branch · model · directory).
+When the mode is off, it prints nothing.
+
+**Keep the status line you already had.** capisce wraps it instead of replacing it. Put
+your previous status line command in a file next to the state file —
+`~/.claude/.capisce-statusline-inner` (or under `$CLAUDE_CONFIG_DIR`) — and capisce runs
+it, captures its output, and stamps the badge in front:
+
+```
+🚬 capisce full · <your existing status line, untouched>
+```
+
+capisce never edits your `settings.json`, so there's nothing to restore. When the mode is
+off, your wrapped status line renders exactly as before, with no badge — capisce is
+invisible until you turn it on. If the wrapped command fails, hangs, or prints nothing,
+capisce falls back to the badge alone within one second, so a broken inner status line
+can never take the bar down.
+
+To opt out, point `statusLine.command` back at whatever you had before (or delete the
+setting). To stop wrapping, delete the `.capisce-statusline-inner` file.
+
 ## The severity scale
 
 The engine underneath the jokes. Ten rungs, triumph to catastrophe, each mapped to a
