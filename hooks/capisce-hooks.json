@@ -26,6 +26,19 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 && node \"${CLAUDE_PLUGIN_ROOT}/hooks/capisce.js\" PostToolUse || exit 0",
+            "commandWindows": "if (Get-Command node -ErrorAction SilentlyContinue) { node \"$env:CLAUDE_PLUGIN_ROOT\\hooks\\capisce.js\" PostToolUse }",
+            "timeout": 5,
+            "statusMessage": "Keeping the register..."
+          }
+        ]
+      }
     ]
   }
 }
