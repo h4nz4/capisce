@@ -68,7 +68,13 @@ claude plugin marketplace add h4nz4/capisce
 claude plugin install capisce@capisce
 ```
 
-Restart Claude Code, then `/capisce`.
+Restart Claude Code. Then pick one:
+
+- **Always on** — set the output style: `/config` → Output style → `capisce:Capisce`,
+  or `"outputStyle": "capisce:Capisce"` in `~/.claude/settings.json` (or a project's
+  `.claude/settings.local.json` for just that repo). `capisce:Capisce Lite` puts the
+  voice on the first line only. Back to normal: set it to `Default`.
+- **This session only** — `/capisce`.
 
 **As a plain skill instead** — drop the `skills/capisce/` folder (the `SKILL.md` plus
 its `references/`) wherever your setup loads skills from. It auto-triggers on
@@ -79,21 +85,62 @@ to answer in the voice.
 
 - `/capisce` — turn it on at the default level (**full**).
 - `/capisce lite` — voice only on the status line, the rest is normal prose.
-- `/capisce ultra` — max density, catchphrases, the whole back-booth monologue.
-- "normal mode" / "knock it off" — turn it off.
+- `/capisce ultra` — thicker per sentence, never longer.
+- "normal mode" / "knock it off" — turn the session mode off.
+
+`/capisce` only affects the session you type it in. The output style is the way to get
+it everywhere.
+
+Best on Opus. On Sonnet and Haiku the voice holds, but our judge found about four times
+the factual errors of Opus on the same questions — worth knowing before you point a
+cheaper model at production work in costume.
 
 ## It doesn't wear off
 
-A skill invoked once by a slash command decays. Thirty turns into a dense debugging
-session the voice is gone, and no rule written *inside* the skill can fix that — because
-nothing re-reads the skill.
+Rules alone don't hold a voice. We ran the same four tool-heavy questions (read two
+scripts and find bugs, walk through a hook, grep for inconsistencies, a quick yes/no)
+through every variant, three runs each, and counted. Every prompt-only version — the
+original skill, the skill plus mid-turn reminders, five rewrites of the output style —
+plateaued at about one swear per reply, and a third to a half of the long answers came
+back with none. The model sprinkles a line of Tony up top, then writes a careful
+neutral walkthrough.
 
-So capisce ships hooks. `SessionStart` restores the mode across restarts, resumes and
-compaction; `UserPromptSubmit` re-injects a **146-token** reminder on every turn while
-the mode is on — the drift antidote, not a reload of the 9,135-token rulebook. When the
-mode is off the hook emits nothing and costs nothing.
+So capisce enforces it. The output style carries the rulebook and worked examples (the
+model copies examples far more than it follows rules); a `UserPromptSubmit` hook
+restates the quota each turn; and a `Stop` hook checks the finished reply — one real
+swear per 60 words of prose, roughly one per paragraph, and a joke in anything past a
+one-liner. Short of that, it sends the reply back once for a closing punchline that
+carries the missing swears. The punchline rotates its shape (comparison, wiseguy beat,
+git-blame shot, understatement) and is told which images it already used this session.
+It never loops and stays off at `lite`.
 
-`/capisce off` or "normal mode" clears it, and it stays cleared.
+Destructive operations and security incidents stay serious — the style says so, and the
+hook never sends back a reply about dropping tables, `rm -rf`, force pushes, rewriting
+history, tearing down infra, or leaked credentials.
+
+Measured with an 11-question harness (code review, hook walkthrough, consistency audit,
+yes/no, incident, good news, a real fix-and-commit, and four destructive/security
+scenarios), graded by a separate model that reads the repo to check every claim:
+
+| | plain agent | first hooks version | now |
+|---|---|---|---|
+| answers with zero swears | 16 of 21 | 1 of 21 | 0 of 42 |
+| swears per 1,000 words | 0.7 | 5.4 | 15.5 |
+| jokes per answer | 0.0 | 1.6 | 2.1 |
+| voice through the body, not just the punchline (0–3) | 0.0 | 1.5 | 2.5 |
+| accuracy (0–3, judged) | 2.71 | 2.82 | 2.80 |
+| destructive/security answers kept serious | — | 9 of 12 | 24 of 24 |
+| voice leaked into code or commits | 0 | 0 | 0 |
+| words per answer | 404 | 236 | 234 |
+
+Three times the mouth of the first hooks version at the same length, and no measurable
+cost to correctness overall. One honest exception: on the code-review question the
+judge scored it lower (2.3 vs ~2.9) — a verdict that opens with a swear sometimes lands
+harder than the evidence. The style tells it the swear goes on the thing, never on your
+certainty; that rule didn't move this number, so treat a profane code-review verdict as
+a lead to check, not a finding.
+
+When the mode is off, the hooks emit nothing and cost nothing.
 
 ## The severity scale
 
