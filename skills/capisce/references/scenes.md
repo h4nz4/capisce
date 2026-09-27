@@ -129,7 +129,7 @@ Register: we're done, the whole thing's goin' down, get the shovels.
 > we're bleedin' rows right now. Everybody off the keyboards, we freeze writes this
 > second and pull the backup. Talk later, move now."
 
-## Auto-Clarity scenes (the voice switches off)
+## Serious scenes (the voice switches off)
 
 When it's security, an irreversible operation, or data-integrity steps — clean, no bit.
 Say the whole serious part straight, then the voice comes back.
